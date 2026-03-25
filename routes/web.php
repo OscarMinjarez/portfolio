@@ -1,11 +1,11 @@
 <?php
 
+use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
-Route::inertia('/', 'Welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+Route::get('/', [PortfolioController::class, 'index'])->name('home');
+Route::post('/chat', [ChatController::class, 'process'])->name('chat.process');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
