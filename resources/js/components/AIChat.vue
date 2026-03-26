@@ -1,91 +1,100 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
-import axios from 'axios'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import { ref, onMounted, nextTick } from 'vue';
+import axios from 'axios';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
-const parseMarkdown = (text: string): string => {
+function parseMarkdown(text: string): string {
     return text
         .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        .replace(/\n/g, '<br>')
+        .replace(/\n/g, '<br>');
 }
 
-const prompt = ref('')
-const bottomRef = ref<HTMLElement | null>(null)
-const quickPrompts = ref<string[]>([])
-const loadingPrompts = ref(false)
+const prompt = ref('');
+const bottomRef = ref<HTMLElement | null>(null);
+const quickPrompts = ref<string[]>([]);
+const loadingPrompts = ref(false);
+const usedPrompts = ref<string[]>([]);
 
-const usedPrompts = ref<string[]>([])
+const messages = ref<{ role: string; text: string }[]>([]);
 
-const messages = ref([
-    {
-        role: 'ari',
-        text: 'Qué onda. Soy Ari, la inteligencia detrás de los fierros de Oscar. ¿Vienes a ver su trabajo o tienes una duda técnica directa sobre su stack?',
-    },
-])
+function getVisitorContext(): string {
+    const time = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const lang = navigator.language || 'es';
+    return `Hora local del visitante: ${time}, Zona horaria: ${tz}, Idioma del navegador: ${lang}`;
+}
 
-let lastPromptFetch = 0
-const PROMPT_COOLDOWN_MS = 4000
-
-const fetchDynamicPrompts = async (contextText = '') => {
+async function fetchDynamicPrompts(contextText = '') {
     try {
         const response = await axios.get('/chat/prompts', {
             params: {
                 context: contextText,
-                used: usedPrompts.value
-            }
-        })
-        quickPrompts.value = response.data.prompts
+                used: usedPrompts.value,
+            },
+        });
+        quickPrompts.value = response.data.prompts;
     } catch (error) {
-        console.error("Bronca cargando los prompts dinámicos:", error)
-    }
-}
-// Al montar: prompts iniciales sin contexto
-onMounted(() => fetchDynamicPrompts())
-
-// Truco para bajar el scroll automáticamente
-const scrollToBottom = async () => {
-    await nextTick()
-    if (bottomRef.value) {
-        bottomRef.value.scrollIntoView({ behavior: 'smooth', block: 'end' })
+        console.error("Bronca cargando los prompts dinámicos:", error);
     }
 }
 
-const sendQuickPrompt = (text: string) => {
-    // Marcarlo como usado antes de enviarlo
-    usedPrompts.value.push(text)
-    prompt.value = text
-    sendMessage()
-}
-
-const sendMessage = async () => {
-    if (!prompt.value.trim()) return
-    const userText = prompt.value
-    messages.value.push({ role: 'user', text: userText })
-    if (!usedPrompts.value.includes(userText)) {
-        usedPrompts.value.push(userText)
-    }
-    prompt.value = ''
-    scrollToBottom()
+onMounted(async function () {
+    messages.value.push({ role: 'ari', text: '...' });
     try {
-        const response = await axios.post('/chat', { prompt: userText })
-        const ariReply = response.data.reply
-        messages.value.push({ role: 'ari', text: ariReply })
-        scrollToBottom()
-        fetchDynamicPrompts(ariReply)
+        const response = await axios.post('/chat/greet', {
+            visitor_context: getVisitorContext(),
+        });
+        messages.value[0].text = response.data.reply;
+    } catch (error) {
+        messages.value[0].text = 'Hola. Soy Ari, la asistente ejecutiva de Oscar Minjarez. ¿Con quién tengo el gusto?';
+    }
+    fetchDynamicPrompts();
+});
+
+async function scrollToBottom() {
+    await nextTick();
+    if (bottomRef.value) {
+        bottomRef.value.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+}
+
+function sendQuickPrompt(text: string) {
+    usedPrompts.value.push(text);
+    prompt.value = text;
+    sendMessage();
+}
+
+async function sendMessage() {
+    if (!prompt.value.trim()) return;
+    const userText = prompt.value;
+    messages.value.push({ role: 'user', text: userText });
+    if (!usedPrompts.value.includes(userText)) {
+        usedPrompts.value.push(userText);
+    }
+    prompt.value = '';
+    scrollToBottom();
+    try {
+        const response = await axios.post('/chat', {
+            prompt: userText,
+            visitor_context: getVisitorContext(),
+        });
+        const ariReply = response.data.reply;
+        messages.value.push({ role: 'ari', text: ariReply });
+        scrollToBottom();
+        fetchDynamicPrompts(ariReply);
     } catch (error) {
         messages.value.push({
             role: 'ari',
-            text: 'Mmm, algo tronó en el servidor. Intenta de nuevo.',
-        })
-        scrollToBottom()
+            text: 'En este momento presento intermitencias de conexión. Por favor, intenta de nuevo.',
+        });
+        scrollToBottom();
     }
 }
 </script>
-
 
 <template>
     <div class="relative w-full flex flex-col h-[75vh] min-h-[500px] max-h-[800px] border border-border/40 rounded-3xl bg-card/10 shadow-sm overflow-hidden">
@@ -99,7 +108,7 @@ const sendMessage = async () => {
                     :class="msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'"
                 >
                     <div 
-                        class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full border shadow-sm"
+                        class="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border shadow-sm"
                         :class="msg.role === 'ari' ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-muted border-border/50 text-muted-foreground'"
                     >
                         <span class="text-xs font-bold font-mono">{{ msg.role === 'ari' ? 'A' : 'V' }}</span>
@@ -124,7 +133,7 @@ const sendMessage = async () => {
             </div>
         </ScrollArea>
 
-        <div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-background via-background/95 to-transparent">
+        <div class="absolute bottom-0 left-0 w-full p-4 bg-linear-to-t from-background via-background/95 to-transparent">
             
             <!-- Skeleton mientras carga nuevos prompts -->
             <div v-if="loadingPrompts" class="flex flex-wrap justify-center gap-2 mb-3 max-w-3xl mx-auto">
