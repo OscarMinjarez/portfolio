@@ -31,35 +31,38 @@ class ChatController extends Controller
     {
         $context = $request->input('context', '');
         $used    = $request->input('used', []);
-
-        $usedList = !empty($used)
-            ? 'Ya se usaron estas preguntas, NO las repitas ni uses variaciones similares: ' . implode(', ', array_map(fn($p) => "\"$p\"", $used)) . '.'
-            : '';
-
-        $contextPart = $context
-            ? "La última respuesta de Ari sobre Oscar fue: \"{$context}\". Genera preguntas de seguimiento sobre ese tema, siempre referidas a Oscar en tercera persona."
-            : 'Genera preguntas variadas sobre Oscar Minjarez: sus proyectos, habilidades técnicas, experiencia profesional.';
-
-        $instruccion = "{$contextPart} {$usedList} "
-            . "Las preguntas deben estar redactadas desde la perspectiva de un visitante o reclutador preguntándole a la secretaria de Oscar, por ejemplo: "
-            . "\"¿Qué hizo Oscar en Zanate?\", \"¿Oscar maneja Java?\", \"¿Cómo manejó Oscar el tema de rendimiento?\". "
-            . "Genera exactamente 3 preguntas cortas (máximo 8 palabras), concretas y distintas entre sí. "
-            . "Devuelve ÚNICAMENTE un arreglo JSON válido de strings. Cero formato markdown, explicaciones ni saludos.";
-
+        $usedList = !empty($used) 
+            ? implode(', ', array_map(fn($p) => "\"$p\"", $used)) 
+            : 'Ninguna todavía.';
+        if (empty(trim($context))) {
+            return response()->json([
+                'prompts' => ["¿Qué stack domina Oscar?", "¿Cuál es su rol en Erus?", "¿Sabe de arquitecturas SaaS?"]
+            ]);
+        }
+        $instruccion = <<<PROMPT
+            Analiza la siguiente respuesta reciente sobre el ingeniero de software Oscar Minjarez.
+            Respuesta de contexto: "{$context}"
+            Preguntas que ya se hicieron (PROHIBIDO REPETIR O USAR VARIACIONES): {$usedList}
+            Tu única tarea: Generar 3 preguntas técnicas y lógicas de seguimiento que un reclutador haría basándose ESTRICTAMENTE en ese contexto.
+            Reglas inquebrantables:
+            1. Si el contexto menciona un proyecto (Nidya, Zanate, etc.) o tecnología, las preguntas DEBEN enfocarse en profundizar sobre eso.
+            2. Redacta en tercera persona como si preguntaras a una secretaria (Ej: "¿Cómo estructuró Oscar la base de datos?", "¿Por qué no usó PostgreSQL en Zanate?").
+            3. Máximo 8 palabras por pregunta.
+            4. Devuelve ÚNICAMENTE un arreglo JSON plano de strings. CERO Markdown, CERO texto extra, CERO bloques (```json).
+            PROMPT;
         try {
             $response  = (new AriAssistant)->prompt($instruccion);
-            $cleanJson = str_replace(['```json', '```', "\n"], '', $response->text);
+            $cleanJson = str_replace(['```json', '```', "\n", "\r"], '', $response->text);
             $decoded   = json_decode(trim($cleanJson), true);
-            if (is_array($decoded) && count($decoded) > 0) {
+            if (is_array($decoded) && count($decoded) === 3) {
                 $prompts = $decoded;
             } else {
-                $prompts = ["¿Qué stack domina Oscar?", "¿Cuál es su rol en Erus?", "¿Sabe de arquitecturas SaaS?"];
+                $prompts = ["¿Qué base de datos usó ahí?", "¿Cómo resolvió ese problema?", "¿Qué rol tuvo Oscar en esto?"];
             }
         } catch (\Exception $e) {
-            Log::error('Error generando las sugerencias: ' . $e->getMessage());
+            Log::error('Error generando las sugerencias dinámicas: ' . $e->getMessage());
             $prompts = ["¿Qué tecnologías maneja?", "¿Tiene experiencia en SaaS?", "¿Cuáles son sus proyectos?"];
         }
-
         return response()->json(['prompts' => $prompts]);
     }
 }

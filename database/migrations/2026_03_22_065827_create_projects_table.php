@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string("image_path");
             $table->boolean("is_featured")->default(false);
             $table->text("ari_context")->nullable();
+            $table->longText('readme_content')->nullable();
             $table->timestamps();
         });
     }

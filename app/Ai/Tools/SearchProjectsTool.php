@@ -30,7 +30,7 @@ class SearchProjectsTool implements Tool
                   ->orWhere('stack', 'LIKE', "%{$keyword}%")
                   ->orWhere('ari_context', 'LIKE', "%{$keyword}%");
         }
-        $projects = $query->get(['title', 'stack', 'ari_context']);
+        $projects = $query->get(['title', 'summary', 'stack', 'ari_context', 'readme_content']);
         if ($projects->isEmpty()) {
             return "No encontré proyectos relacionados con: {$keyword}.";
         }

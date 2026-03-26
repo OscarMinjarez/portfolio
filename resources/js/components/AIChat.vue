@@ -30,26 +30,21 @@ const messages = ref([
 let lastPromptFetch = 0
 const PROMPT_COOLDOWN_MS = 4000
 
-const fetchPrompts = async (context = '', used: string[] = []) => {
-    const now = Date.now()
-    if (now - lastPromptFetch < PROMPT_COOLDOWN_MS) return
-    lastPromptFetch = now
-
-    loadingPrompts.value = true
+const fetchDynamicPrompts = async (contextText = '') => {
     try {
         const response = await axios.get('/chat/prompts', {
-            params: { context, used },
+            params: {
+                context: contextText,
+                used: usedPrompts.value
+            }
         })
         quickPrompts.value = response.data.prompts
     } catch (error) {
-        console.error('Bronca cargando los prompts:', error)
-    } finally {
-        loadingPrompts.value = false
+        console.error("Bronca cargando los prompts dinámicos:", error)
     }
 }
-
 // Al montar: prompts iniciales sin contexto
-onMounted(() => fetchPrompts())
+onMounted(() => fetchDynamicPrompts())
 
 // Truco para bajar el scroll automáticamente
 const scrollToBottom = async () => {
@@ -70,24 +65,23 @@ const sendMessage = async () => {
     if (!prompt.value.trim()) return
     const userText = prompt.value
     messages.value.push({ role: 'user', text: userText })
+    if (!usedPrompts.value.includes(userText)) {
+        usedPrompts.value.push(userText)
+    }
     prompt.value = ''
     scrollToBottom()
-    quickPrompts.value = []
     try {
         const response = await axios.post('/chat', { prompt: userText })
         const ariReply = response.data.reply
-        const isError  = response.data.error === true
-
         messages.value.push({ role: 'ari', text: ariReply })
         scrollToBottom()
-        fetchPrompts(isError ? '' : ariReply, usedPrompts.value)
+        fetchDynamicPrompts(ariReply)
     } catch (error) {
         messages.value.push({
             role: 'ari',
             text: 'Mmm, algo tronó en el servidor. Intenta de nuevo.',
         })
         scrollToBottom()
-        fetchPrompts('', usedPrompts.value)
     }
 }
 </script>
