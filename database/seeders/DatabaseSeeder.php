@@ -110,10 +110,10 @@ class DatabaseSeeder extends Seeder
             'slug' => 'nidya-saas',
             'summary' => 'Plataforma multi-tenant para la gestión empresarial. Mi especialidad es transformar lógica de negocio compleja en soluciones técnicas mantenibles.',
             'content' => 'Nidya es un ERP/SaaS diseñado para la escalabilidad. Implementa aislamiento de datos riguroso y una arquitectura de backend robusta. Responsable del mantenimiento integral de módulos críticos en producción, asegurando la estabilidad y disponibilidad del sistema.',
-            'stack' => ['Laravel', 'Angular', 'PostgreSQL', 'Docker'],
+            'stack' => ['Laravel', 'VueJS', 'PostgreSQL', 'Docker'],
             'image_path' => '/img/nidya.png',
             'is_featured' => true,
-            'ari_context' => 'Oscar lideró el desarrollo del Módulo de Inversiones en Nidya SaaS, diseñando la arquitectura de base de datos y la lógica financiera en el Backend con Laravel y PostgreSQL para el cálculo y seguimiento de rendimientos de inversión.',
+            'ari_context' => 'Oscar lidera el desarrollo de este último con un pequeño equipo de trabajo amantes del desarrollo de código abierto..',
             'readme_content' => $nidyaReadme,
         ]);
 
