@@ -1,39 +1,44 @@
 <?php
 
-namespace App\Http\Controllers;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Laravel\Ai\Migrations\AiMigration;
 
-use Illuminate\Http\Request;
-use App\Models\Project;
-use App\Models\WorkExperience;
-use Illuminate\Support\Facades\Log;
-use Laravel\Ai\Facades\AI;
-
-class ChatController extends Controller
+return new class extends AiMigration
 {
-    public function process(Request $request)
+    public function up(): void
     {
-        $request->validate([
-            'prompt' => 'required|string|max:1000'
-        ]);
-        $userMessage = $request->input('prompt');
-        $projects = Project::where('is_featured', true)->get(['title', 'stack', 'ari_context']);
-        $experiences = WorkExperience::all(['company', 'position', 'ari_context']);
-        $systemInstruction = "Eres Ari, la asistente estratégica de Oscar Minjarez. Responde directo y con sarcasmo ligero si es necesario (estilo Sonora). 
-        Oscar es un Software Engineer enfocado en backend robusto. 
-        Contexto de proyectos: {$projects->toJson()}
-        Contexto de experiencia: {$experiences->toJson()}";
-        try {
-            $response = AI::agent('ari')
-                ->system($systemInstruction)
-                ->conversation(session()->getId())
-                ->chat($userMessage);
+        Schema::create('agent_conversations', function (Blueprint $table) {
+            $table->string('id', 36)->primary();
+            $table->foreignId('user_id')->nullable();
+            $table->string('title');
+            $table->timestamps();
 
-            $ariReply = $response->text();
-            
-        } catch (\Exception $e) {
-            Log::error('Bronca con Laravel AI: ' . $e->getMessage());
-            $ariReply = "Ahorita ando teniendo broncas de conexión con el motor. Intenta en un rato.";
-        }
-        return response()->json(['reply' => $ariReply]);
+            $table->index(['user_id', 'updated_at']);
+        });
+
+        Schema::create('agent_conversation_messages', function (Blueprint $table) {
+            $table->string('id', 36)->primary();
+            $table->string('conversation_id', 36)->index();
+            $table->foreignId('user_id')->nullable();
+            $table->string('agent');
+            $table->string('role', 25);
+            $table->text('content');
+            $table->text('attachments');
+            $table->text('tool_calls');
+            $table->text('tool_results');
+            $table->text('usage');
+            $table->text('meta');
+            $table->timestamps();
+
+            $table->index(['conversation_id', 'user_id', 'updated_at'], 'conversation_index');
+            $table->index(['user_id']);
+        });
     }
-}
+
+    public function down(): void
+    {
+        Schema::dropIfExists('agent_conversations');
+        Schema::dropIfExists('agent_conversation_messages');
+    }
+};
