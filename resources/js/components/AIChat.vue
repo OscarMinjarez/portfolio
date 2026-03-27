@@ -18,6 +18,7 @@ const bottomRef = ref<HTMLElement | null>(null);
 const quickPrompts = ref<string[]>([]);
 const loadingPrompts = ref(false);
 const usedPrompts = ref<string[]>([]);
+const isLoading = ref(false);
 
 const messages = ref<{ role: string; text: string }[]>([]);
 
@@ -69,29 +70,32 @@ function sendQuickPrompt(text: string) {
 }
 
 async function sendMessage() {
-    if (!prompt.value.trim()) return;
+    if (!prompt.value.trim() || isLoading.value) return;
     const userText = prompt.value;
     messages.value.push({ role: 'user', text: userText });
     if (!usedPrompts.value.includes(userText)) {
         usedPrompts.value.push(userText);
     }
     prompt.value = '';
+    isLoading.value = true;
+    // Indicador de escritura
+    messages.value.push({ role: 'ari', text: '...' });
     scrollToBottom();
     try {
         const response = await axios.post('/chat', {
             prompt: userText,
             visitor_context: getVisitorContext(),
+            history: messages.value.slice(0, -2), // excluye el mensaje del user actual y el '...'
         });
-        const ariReply = response.data.reply;
-        messages.value.push({ role: 'ari', text: ariReply });
+        // Reemplazar el '...' con la respuesta real
+        messages.value[messages.value.length - 1].text = response.data.reply;
         scrollToBottom();
-        fetchDynamicPrompts(ariReply);
+        fetchDynamicPrompts(response.data.reply);
     } catch (error) {
-        messages.value.push({
-            role: 'ari',
-            text: 'En este momento presento intermitencias de conexión. Por favor, intenta de nuevo.',
-        });
+        messages.value[messages.value.length - 1].text = 'En este momento presento intermitencias de conexión. Por favor, intenta de nuevo.';
         scrollToBottom();
+    } finally {
+        isLoading.value = false;
     }
 }
 </script>
@@ -121,9 +125,12 @@ async function sendMessage() {
                         
                         <div 
                             class="px-4 py-3 text-sm leading-relaxed"
-                            :class="msg.role === 'user' 
-                                ? 'bg-primary text-primary-foreground rounded-2xl rounded-tr-sm' 
-                                : 'bg-muted/30 border border-border/40 text-foreground rounded-2xl rounded-tl-sm'"
+                            :class="[
+                                msg.role === 'user' 
+                                    ? 'bg-primary text-primary-foreground rounded-2xl rounded-tr-sm' 
+                                    : 'bg-muted/30 border border-border/40 text-foreground rounded-2xl rounded-tl-sm',
+                                msg.text === '...' ? 'animate-pulse' : ''
+                            ]"
                         >
                             <span v-html="parseMarkdown(msg.text)"></span>
                         </div>
@@ -160,15 +167,17 @@ async function sendMessage() {
                 <Input
                     v-model="prompt"
                     placeholder="Pregúntale a Ari..."
-                    class="w-full bg-background border border-border/60 rounded-full pl-6 pr-14 h-12 text-sm shadow-md focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-border transition-all"
+                    :disabled="isLoading"
+                    class="w-full bg-background border border-border/60 rounded-full pl-6 pr-14 h-12 text-sm shadow-md focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-border transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <Button
                     type="submit"
                     size="icon"
                     class="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 transition-transform active:scale-95"
-                    :disabled="!prompt.trim()"
+                    :disabled="!prompt.trim() || isLoading"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+                    <svg v-if="!isLoading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="animate-spin"><path d="M12 2a10 10 0 0 1 10 10h-2a8 8 0 0 0-8-8V2z"/></svg>
                 </Button>
             </form>
         </div>

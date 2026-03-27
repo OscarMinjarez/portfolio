@@ -23,17 +23,24 @@ class SearchExperienceTool implements Tool
      */
     public function handle(Request $request): Stringable|string
     {
-        $keyword = $request->get('keyword');
+        $keyword = $request->get('query');
         $query = WorkExperience::query();
+
         if ($keyword) {
-            $query->where('company', 'LIKE', "%{$keyword}%")
+            $query->where(function ($q) use ($keyword) {
+                $q->where('company', 'LIKE', "%{$keyword}%")
                   ->orWhere('position', 'LIKE', "%{$keyword}%")
-                  ->orWhere('ari_context', 'LIKE', "%{$keyword}%");
+                  ->orWhere('ari_context', 'LIKE', "%{$keyword}%")
+                  ->orWhere('description', 'LIKE', "%{$keyword}%");
+            });
         }
-        $experiences = $query->get(['company', 'position', 'ari_context']);
+
+        $experiences = $query->take(5)->get(['company', 'position', 'ari_context', 'description']);
+
         if ($experiences->isEmpty()) {
-            return "No encontré experiencia laboral relacionada con: {$keyword}.";
+            return "No se encontró experiencia laboral relacionada con: {$keyword}.";
         }
+
         return $experiences->toJson();
     }
 
@@ -43,7 +50,7 @@ class SearchExperienceTool implements Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'keyword' => $schema->string()->description('Palabra clave para filtrar la experiencia, ej. "Erus", "Java", "Backend"')->nullable(),
+            'query' => $schema->string()->description('Termino de búsqueda para la experiencia laboral (empresa, rol o tecnología).')->required(),
         ];
     }
 }

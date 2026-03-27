@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Ai\Agents\PromptGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Ai\Agents\AriAssistant;
@@ -9,6 +10,8 @@ use App\Models\Project;
 use App\Models\WorkExperience;
 use App\Models\Technology;
 use Laravel\Ai\Ai;
+use Laravel\Ai\Messages\AssistantMessage;
+use Laravel\Ai\Messages\UserMessage;
 
 class ChatController extends Controller
 {
@@ -31,10 +34,38 @@ class ChatController extends Controller
         $request->validate([
             'prompt' => 'required|string|max:1000'
         ]);
-        $userMessage = $request->input('prompt');
+        $userMessage    = $request->input('prompt');
+        $visitorContext = $request->input('visitor_context', '');
+        $rawHistory     = $request->input('history', []);
+        $history = [];
+        foreach ($rawHistory as $msg) {
+            $text = trim($msg['text'] ?? '');
+            if (empty($text) || $text === '...') {
+                continue;
+            }
+            if ($msg['role'] === 'user') {
+                $history[] = new UserMessage($text);
+            } elseif ($msg['role'] === 'ari') {
+                if (str_contains($text, 'SearchProjectsTool') || str_contains($text, 'SearchExperienceTool') || str_contains($text, '{{')) {
+                    continue;
+                }
+                $history[] = new AssistantMessage($text);
+            }
+        }
+        $agent = new AriAssistant();
+        $agent->visitorContext = $visitorContext;
+        $agent->history = $history;
         try {
-            $response = (new AriAssistant)->prompt($userMessage);
-            return response()->json(['reply' => $response->text, 'error' => false]);
+            $response = $agent->prompt($userMessage);
+            $finalText = $response->steps
+                ->filter(fn ($step) => empty($step->toolCalls))
+                ->filter(fn ($step) => !str_contains($step->text, 'SearchProjectsTool') && !str_contains($step->text, 'SearchExperienceTool') && !str_contains($step->text, '{{'))
+                ->last()?->text;
+            $reply = trim($finalText ?: $response->text);
+            if (empty($reply) || str_contains($reply, '{{')) {
+                $reply = "Dame un segundito, estoy revisando los detalles de Oscar para responderte bien.";
+            }
+            return response()->json(['reply' => $reply, 'error' => false]);
         } catch (\Exception $e) {
             Log::error('Bronca con el agente Ari: ' . $e->getMessage());
             return response()->json([
@@ -59,6 +90,10 @@ class ChatController extends Controller
         $instruccion = <<<PROMPT
             Analiza la siguiente respuesta reciente sobre el ingeniero de software Oscar Minjarez.
             Respuesta de contexto: "{$context}"
+            REGLAS DE INFORMACIÓN:
+            - Oscar es de Ciudad Obregón. Su enfoque es backend robusto (Java, Spring Boot, Laravel) e IA local.
+            - USA tus herramientas (SearchProjectsTool, SearchExperienceTool) siempre que te pregunten por los proyectos o la experiencia de Oscar. NO inventes datos. 
+            - REGLA DE ORO DE RESPUESTA: Procesa los datos de la herramienta y responde de forma natural al usuario. NUNCA menciones el nombre de la herramienta ni pongas etiquetas como {{SearchProjectsTool}} en tu mensaje final. Todo el uso de herramientas debe ser interno y transparente para el usuario.
             Preguntas que ya se hicieron (PROHIBIDO REPETIR O USAR VARIACIONES): {$usedList}
             Tu única tarea: Generar 3 preguntas técnicas y lógicas de seguimiento que un reclutador haría basándose ESTRICTAMENTE en ese contexto.
             Reglas inquebrantables:
@@ -68,17 +103,17 @@ class ChatController extends Controller
             4. Devuelve ÚNICAMENTE un arreglo JSON plano de strings. CERO Markdown, CERO texto extra, CERO bloques (```json).
             PROMPT;
         try {
-            $response  = (new AriAssistant)->prompt($instruccion);
+            $response  = (new PromptGenerator)->prompt($instruccion);            
             $cleanJson = str_replace(['```json', '```', "\n", "\r"], '', $response->text);
             $decoded   = json_decode(trim($cleanJson), true);
             if (is_array($decoded) && count($decoded) === 3) {
                 $prompts = $decoded;
             } else {
-                $prompts = ["¿Qué base de datos usó ahí?", "¿Cómo resolvió ese problema?", "¿Qué rol tuvo Oscar en esto?"];
+                $prompts = $this->generateContextualFallback($context);
             }
         } catch (\Exception $e) {
             Log::error('Error generando las sugerencias dinámicas: ' . $e->getMessage());
-            $prompts = ["¿Qué tecnologías maneja?", "¿Tiene experiencia en SaaS?", "¿Cuáles son sus proyectos?"];
+            $prompts = $this->generateContextualFallback($context);
         }
         return response()->json(['prompts' => $prompts]);
     }
@@ -124,5 +159,53 @@ class ChatController extends Controller
             }
         }
         return $prompts;
+    }
+
+    private function generateContextualFallback(string $context): array
+    {
+        $projectNames = Project::pluck('title')->toArray();
+        $techNames    = Technology::pluck('name')->toArray();
+        $companyNames = WorkExperience::pluck('company')->toArray();
+        $mentionedProject  = null;
+        $mentionedTech     = null;
+        $mentionedCompany  = null;
+        foreach ($projectNames as $name) {
+            if (stripos($context, $name) !== false) {
+                $mentionedProject = $name;
+                break;
+            }
+        }
+        foreach ($techNames as $name) {
+            if (stripos($context, $name) !== false) {
+                $mentionedTech = $name;
+                break;
+            }
+        }
+        foreach ($companyNames as $name) {
+            if (stripos($context, $name) !== false) {
+                $mentionedCompany = $name;
+                break;
+            }
+        }
+        $prompts = [];
+        if ($mentionedProject) {
+            $prompts[] = "¿Qué stack usó Oscar en {$mentionedProject}?";
+            $prompts[] = "¿Qué retos enfrentó en {$mentionedProject}?";
+        }
+        if ($mentionedTech) {
+            $prompts[] = "¿Dónde ha usado Oscar {$mentionedTech}?";
+        }
+        if ($mentionedCompany) {
+            $prompts[] = "¿Qué rol tiene Oscar en {$mentionedCompany}?";
+        }
+        $generic = [
+            "¿Qué más puede contarme de eso?",
+            "¿Qué tecnologías se usaron ahí?",
+            "¿Cómo abordó Oscar ese desafío?",
+        ];
+        while (count($prompts) < 3) {
+            $prompts[] = array_shift($generic);
+        }
+        return array_slice($prompts, 0, 3);
     }
 }

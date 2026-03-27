@@ -23,17 +23,24 @@ class SearchProjectsTool implements Tool
      */
     public function handle(Request $request): Stringable|string
     {
-        $keyword = $request->get('keyword');
-        $query = Project::where('is_featured', true)->query();
+        $keyword = $request->get('query');
+        $query = Project::query()->where('is_featured', true);
+
         if ($keyword) {
-            $query->where('title', 'LIKE', "%{$keyword}%")
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'LIKE', "%{$keyword}%")
                   ->orWhere('stack', 'LIKE', "%{$keyword}%")
-                  ->orWhere('ari_context', 'LIKE', "%{$keyword}%");
+                  ->orWhere('ari_context', 'LIKE', "%{$keyword}%")
+                  ->orWhere('summary', 'LIKE', "%{$keyword}%");
+            });
         }
-        $projects = $query->get(['title', 'summary', 'stack', 'ari_context', 'readme_content']);
+
+        $projects = $query->take(5)->get(['title', 'summary', 'stack', 'ari_context', 'readme_content']);
+
         if ($projects->isEmpty()) {
-            return "No encontré proyectos relacionados con: {$keyword}.";
+            return "No se encontraron proyectos específicos para: {$keyword}.";
         }
+
         return $projects->toJson();
     }
 
@@ -43,7 +50,7 @@ class SearchProjectsTool implements Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'value' => $schema->string()->required(),
+            'query' => $schema->string()->description('Palabra clave o nombre del proyecto a buscar.')->required(),
         ];
     }
 }
