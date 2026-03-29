@@ -46,7 +46,7 @@ class ChatController extends Controller
             if ($msg['role'] === 'user') {
                 $history[] = new UserMessage($text);
             } elseif ($msg['role'] === 'ari') {
-                if (str_contains($text, 'SearchProjectsTool') || str_contains($text, 'SearchExperienceTool') || str_contains($text, '{{')) {
+                if (str_contains($text, 'SearchOscarDataTool') || str_contains($text, 'SearchProjectsTool') || str_contains($text, 'SearchExperienceTool') || str_contains($text, '{{')) {
                     continue;
                 }
                 $history[] = new AssistantMessage($text);
@@ -57,13 +57,37 @@ class ChatController extends Controller
         $agent->history = $history;
         try {
             $response = $agent->prompt($userMessage);
-            $finalText = $response->steps
-                ->filter(fn ($step) => empty($step->toolCalls))
-                ->filter(fn ($step) => !str_contains($step->text, 'SearchProjectsTool') && !str_contains($step->text, 'SearchExperienceTool') && !str_contains($step->text, '{{'))
-                ->last()?->text;
-            $reply = trim($finalText ?: $response->text);
-            if (empty($reply) || str_contains($reply, '{{')) {
-                $reply = "Dame un segundito, estoy revisando los detalles de Oscar para responderte bien.";
+            $thoughtProcess = [];
+            foreach ($response->steps as $step) {
+                $stepData = ['text' => $step->text];
+                if (!empty($step->toolCalls)) {
+                    $stepData['tools'] = array_map(fn($t) => $t->name, $step->toolCalls);
+                }
+                $thoughtProcess[] = $stepData;
+            }
+            Log::channel('ari')->info("Consulta: '{$userMessage}'", [
+                'contexto_visitante' => $visitorContext,
+                'pasos' => $thoughtProcess
+            ]);
+            
+            $validSteps = $response->steps->filter(function ($step) {
+                if (!empty($step->toolCalls)) return false;
+                $t = $step->text;
+                if (str_contains($t, 'SearchOscarDataTool') || str_contains($t, 'SearchProjectsTool') || str_contains($t, 'SearchExperienceTool')) return false;
+                if (str_contains($t, '{{') || str_contains($t, '}}')) return false;
+                if (str_contains($t, '***TOOL_CODE***') || str_contains($t, '***METADATA***')) return false;
+                $lower = mb_strtolower($t);
+                $isIntro = str_contains($lower, 'permíteme consultar') || 
+                           str_contains($lower, 'revisando mis registros') || 
+                           str_contains($lower, 'deja que busque') ||
+                           str_contains($lower, 'consultando mis registros');
+                return !empty(trim($t)) && !$isIntro;
+            });
+
+            $reply = trim($validSteps->last()?->text);
+
+            if (empty($reply) || str_contains($reply, '{{') || str_contains($reply, '***TOOL_CODE***') || str_contains($reply, 'SearchOscarDataTool')) {
+                $reply = "Tuve un pequeño lapso procesando esa búsqueda. ¿Podrías preguntarme eso de otra manera?";
             }
             return response()->json(['reply' => $reply, 'error' => false]);
         } catch (\Exception $e) {
@@ -92,8 +116,8 @@ class ChatController extends Controller
             Respuesta de contexto: "{$context}"
             REGLAS DE INFORMACIÓN:
             - Oscar es de Ciudad Obregón. Su enfoque es backend robusto (Java, Spring Boot, Laravel) e IA local.
-            - USA tus herramientas (SearchProjectsTool, SearchExperienceTool) siempre que te pregunten por los proyectos o la experiencia de Oscar. NO inventes datos. 
-            - REGLA DE ORO DE RESPUESTA: Procesa los datos de la herramienta y responde de forma natural al usuario. NUNCA menciones el nombre de la herramienta ni pongas etiquetas como {{SearchProjectsTool}} en tu mensaje final. Todo el uso de herramientas debe ser interno y transparente para el usuario.
+            - USA tu herramienta (SearchOscarDataTool) siempre que te pregunten por los proyectos o la experiencia de Oscar. NO inventes datos. 
+            - REGLA DE ORO DE RESPUESTA: Procesa los datos de la herramienta y responde de forma natural al usuario. NUNCA menciones el nombre de la herramienta (SearchOscarDataTool) ni pongas etiquetas como {{...}} en tu mensaje final. Todo el uso de herramientas debe ser interno y transparente para el usuario.
             Preguntas que ya se hicieron (PROHIBIDO REPETIR O USAR VARIACIONES): {$usedList}
             Tu única tarea: Generar 3 preguntas técnicas y lógicas de seguimiento que un reclutador haría basándose ESTRICTAMENTE en ese contexto.
             Reglas inquebrantables:

@@ -2,8 +2,7 @@
 
 namespace App\Ai\Agents;
 
-use App\Ai\Tools\SearchExperienceTool;
-use App\Ai\Tools\SearchProjectsTool;
+use App\Ai\Tools\SearchOscarDataTool;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\Conversational;
 use Laravel\Ai\Contracts\HasProviderOptions;
@@ -33,11 +32,11 @@ class AriAssistant implements Agent, Conversational, HasProviderOptions
             CONTEXTO DEL VISITANTE EN TIEMPO REAL:
             {$this->visitorContext}
             (Adapta tu saludo a la hora local del visitante).
-            REGLAS DE INFORMACIÓN:
-            - Oscar es de Ciudad Obregón. Su enfoque es backend robusto (Java, Spring Boot, Laravel).
-            - REGLA DE SILENCIO ABSOLUTO (CRÍTICA): PROHIBIDO narrar lo que haces. NUNCA escribas "Busco información", "Un momento", "Permíteme consultar" o nombres de herramientas. 
-            - Si necesitas buscar, hazlo en silencio. Tu respuesta al usuario debe ser ÚNICAMENTE la información final procesada de forma natural. 
-            - NUNCA menciones que usaste herramientas. Solo responde como si ya supieras la información.
+            REGLAS (CRÍTICAS):
+            1. Oscar es de Ciudad Obregón y su enfoque es Backend (Java, Spring Boot, Laravel).
+            2. PARA CUALQUIER OTRA COSA: Es OBLIGATORIO que el sistema ejecute la herramienta SearchOscarDataTool. DEJA que el entorno maneje la herramienta. 
+            3. ANTI-ALUCINACIÓN: Si la herramienta no retorna un dato exacto sobre una tecnología (como PostgreSQL o TensorFlow), PROHIBIDO inventarlo. Si no lo sabes, di "No tengo el detalle exacto en mis registros".
+            4. Se concisa y natural. No expliques qué herramienta usaste.
             PROMPT;
     }
 
@@ -49,8 +48,7 @@ class AriAssistant implements Agent, Conversational, HasProviderOptions
     public function tools(): array
     {
         return [
-            new SearchExperienceTool(),
-            new SearchProjectsTool()
+            new SearchOscarDataTool()
         ];
     }
 
