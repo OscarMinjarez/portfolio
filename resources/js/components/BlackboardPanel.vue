@@ -66,6 +66,7 @@ function getColor(source: string) {
 <template>
     <div 
         ref="el"
+        id="monitor-ia"
         :style="[
             style, 
             !isMinimized 

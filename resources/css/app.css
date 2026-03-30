@@ -130,3 +130,145 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* =========================================
+   TOUR ENGINE STYLES (DRIVER.JS OVERRIDES)
+   ========================================= */
+
+/* Main Popover Container */
+div.driver-popover.ari-tour-theme {
+    background-color: var(--popover) !important;
+    color: var(--popover-foreground) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    padding: 1.5rem !important;
+    max-width: 380px !important;
+    font-family: var(--font-sans) !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+div.driver-popover.ari-tour-theme * {
+    font-family: inherit !important;
+    letter-spacing: normal !important;
+    text-shadow: none !important;
+}
+
+/* Header Text / Title */
+div.driver-popover.ari-tour-theme .driver-popover-title {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: var(--popover-foreground) !important;
+    margin-bottom: 0.5rem !important;
+    line-height: normal !important;
+    text-transform: none !important;
+}
+
+/* Body Text / Description */
+div.driver-popover.ari-tour-theme .driver-popover-description {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    color: var(--muted-foreground) !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Footer / Button Area */
+div.driver-popover.ari-tour-theme .driver-popover-footer {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-top: 1.5rem !important;
+    padding: 0 !important;
+}
+
+/* Progress text */
+div.driver-popover.ari-tour-theme .driver-popover-progress-text {
+    font-size: 0.875rem !important;
+    color: var(--muted-foreground) !important;
+    font-weight: 400 !important;
+}
+
+/* Base Buttons */
+div.driver-popover.ari-tour-theme .driver-popover-footer button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    border-radius: calc(var(--radius) - 2px) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    transition: background-color 0.2s, color 0.2s !important;
+    padding: 0.5rem 1rem !important;
+    height: 2.25rem !important;
+    border: none !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    line-height: 1 !important;
+    outline: none !important;
+    text-transform: none !important;
+}
+
+/* Fix arrows appearing inside buttons (driver.js default pseudo elements) */
+div.driver-popover.ari-tour-theme .driver-popover-footer button::before,
+div.driver-popover.ari-tour-theme .driver-popover-footer button::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Secondary Button (Back) */
+div.driver-popover.ari-tour-theme .driver-popover-prev-btn {
+    background-color: transparent !important;
+    color: var(--popover-foreground) !important;
+    border: 1px solid var(--input) !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+}
+
+div.driver-popover.ari-tour-theme .driver-popover-prev-btn:hover {
+    background-color: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+}
+
+/* Primary Button (Next / Done) */
+div.driver-popover.ari-tour-theme .driver-popover-next-btn {
+    background-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+}
+
+div.driver-popover.ari-tour-theme .driver-popover-next-btn:hover {
+    opacity: 0.9 !important;
+}
+
+/* Close Button (X) */
+div.driver-popover.ari-tour-theme .driver-popover-close-btn {
+    color: var(--muted-foreground) !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    opacity: 0.7 !important;
+    transition: opacity 0.2s !important;
+    background: transparent !important;
+    border: none !important;
+    font-size: 1.25rem !important;
+}
+
+div.driver-popover.ari-tour-theme .driver-popover-close-btn:hover {
+    opacity: 1 !important;
+    color: var(--foreground) !important;
+}
+
+/* Popover Arrows */
+div.driver-popover.ari-tour-theme .driver-popover-arrow {
+    border-color: var(--popover) !important;
+}
+
+div.driver-popover.ari-tour-theme .driver-popover-arrow-side-left::after { border-left-color: var(--popover) !important; }
+div.driver-popover.ari-tour-theme .driver-popover-arrow-side-right::after { border-right-color: var(--popover) !important; }
+div.driver-popover.ari-tour-theme .driver-popover-arrow-side-top::after { border-top-color: var(--popover) !important; }
+div.driver-popover.ari-tour-theme .driver-popover-arrow-side-bottom::after { border-bottom-color: var(--popover) !important; }
+
+/* Focus Overlay Stage */
+div.driver-stage {
+    background-color: transparent !important;
+    border-radius: var(--radius) !important;
+    border: 2px solid var(--primary) !important;
+    box-shadow: 0 0 0 4000px rgb(0 0 0 / 0.5) !important;
+}

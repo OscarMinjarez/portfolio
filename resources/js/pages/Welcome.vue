@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Head } from '@inertiajs/vue3';
+import { driver } from 'driver.js';
+import 'driver.js/dist/driver.css';
+
 import Navbar from '@/components/Navbar.vue';
 import AdeniumArt from '@/components/AdeniumArt.vue';
 import BlackboardPanel from '@/components/BlackboardPanel.vue';
@@ -74,6 +77,55 @@ const scatteredItems = computed(function () {
 function getScatterClass() {
     return 'lg:absolute relative w-full lg:w-[320px] xl:w-[360px] mb-6 lg:mb-0 transition-all duration-700 ease-out hover:!z-[100] lg:hover:-translate-y-2 lg:hover:scale-105 group card-scatter';
 };
+
+function startTour() {
+    const driverObj = driver({
+        showProgress: true,
+        animate: true,
+        nextBtnText: 'Siguiente &rarr;',
+        prevBtnText: '&larr; Atrás',
+        doneBtnText: 'Entendido',
+        stagePadding: 12,
+        popoverClass: 'ari-tour-theme',
+        steps: [
+            { 
+                popover: { 
+                    title: 'Portafolio Interactivo', 
+                    description: 'Esto no es un currículum estático. Estás a punto de interactuar con una arquitectura conectada a la base de datos central.' 
+                } 
+            },
+            { 
+                element: '#monitor-ia',
+                popover: { 
+                    title: 'Sistema Nervioso', 
+                    description: 'Esta es la consola de mi Agente de IA. Vigila tu navegación y te soltará insights técnicos sobre mi experiencia en tiempo real.',
+                    side: "bottom", 
+                    align: "start"
+                } 
+            },
+            { 
+                element: '.card-scatter > div', 
+                popover: { 
+                    title: 'Inicia el análisis', 
+                    description: 'Deja tu cursor sobre cualquier tarjeta por 3 segundos para que el agente extraiga el reporte. Dale clic si quieres ver los detalles a fondo.',
+                    side: "right",
+                    align: "center"
+                } 
+            }
+        ],
+        onDestroyStarted: () => {
+            localStorage.setItem('tour_visto', 'true');
+            driverObj.destroy();
+        }
+    });
+    driverObj.drive();
+};
+
+onMounted(() => {
+    if (!localStorage.getItem('tour_visto')) {
+        setTimeout(() => startTour(), 1000);
+    }
+});
 </script>
 
 <template>
