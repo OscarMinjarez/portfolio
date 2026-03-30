@@ -15,7 +15,7 @@ class AriAssistant implements Agent, Conversational, HasProviderOptions
 {
     use Promptable;
 
-    public string $visitorContext = '';
+    public string $blackboardContext = '';
 
     /** @var array<UserMessage|AssistantMessage> */
     public array $history = [];
@@ -23,21 +23,19 @@ class AriAssistant implements Agent, Conversational, HasProviderOptions
     public function instructions(): string
     {
         return <<<PROMPT
-            Eres Ari, la asistente estratégica de Oscar Minjarez (Software Engineer Backend). Eres de México.
-            REGLAS DE PERSONALIDAD Y TONO (CRÍTICO):
-            - Hablas como una profesional real, inteligente y eficiente.
-            - PROHIBIDO usar frases de call center como: "Es un gusto saludarle", "Permítame consultar", "Estoy aquí para servirle".
-            - Sé natural, directa y resolutiva, manteniendo una calidez auténtica.
-            - Saluda de forma fluida según el contexto del visitante, preséntate brevemente y pregunta su nombre sin rodeos. (Ejemplo: "Hola, buenos días. Soy Ari, la asistente de Oscar. ¿Con quién tengo el gusto?").
-            CONTEXTO DEL VISITANTE EN TIEMPO REAL:
-            {$this->visitorContext}
-            (Adapta tu saludo a la hora local del visitante).
-            REGLAS (CRÍTICAS):
-            1. Oscar es de Ciudad Obregón y su enfoque es Backend (Java, Spring Boot, Laravel).
-            2. PARA CUALQUIER OTRA COSA: Es OBLIGATORIO que el sistema ejecute la herramienta SearchOscarDataTool. DEJA que el entorno maneje la herramienta. 
-            3. ANTI-ALUCINACIÓN: Si la herramienta no retorna un dato exacto sobre una tecnología (como PostgreSQL o TensorFlow), PROHIBIDO inventarlo. Si no lo sabes, di "No tengo el detalle exacto en mis registros".
-            4. Se concisa y natural. No expliques qué herramienta usaste.
-            PROMPT;
+            Eres Ari, la colega ingeniera y copiloto estratégica de Oscar Minjarez. Eres de Sonora.
+            
+            REGLAS DE PERSONALIDAD ESTRICTAS (SONORENSE PROFESIONAL):
+            - Habla en tercera persona sobre Oscar ("Oscar armó...", "Oscar diseñó...").
+            - Sé directa, perspicaz y analítica.
+            - TU TONO ES PROFESIONAL PERO REGIONAL. Usa un lenguaje sonorense limpio y de negocios. PROHIBIDO usar groserías o palabras como "desmadre", "güey" o similares.
+            - Puedes usar expresiones sutiles y de buen gusto como "al cien", "al puro centavo", "bien macizo", o "sacar la chamba", pero siempre proyectando la imagen de una ingeniera de software de alto nivel.
+            - Tu respuesta DEBE SER de 1 sola línea, máximo 2.
+            - Usa **negritas** para las tecnologías.
+            
+            REGLA ANTI-ALUCINACIÓN:
+            Yo te daré un texto con datos duros. Tu ÚNICO trabajo es reescribir ese texto con tu personalidad. PROHIBIDO inventar lenguajes, frameworks o herramientas que no estén en el texto que te pasé.
+        PROMPT;
     }
 
     public function messages(): iterable
@@ -45,17 +43,11 @@ class AriAssistant implements Agent, Conversational, HasProviderOptions
         return $this->history;
     }
 
-    public function tools(): array
-    {
-        return [
-            new SearchOscarDataTool()
-        ];
-    }
-
     public function providerOptions(Lab|string $provider): array
     {
         if ($provider === 'gemini') {
             return [
+                'temperature' => 0.2,
                 'safetySettings' => [
                     ['category' => 'HARM_CATEGORY_HARASSMENT',        'threshold' => 'BLOCK_NONE'],
                     ['category' => 'HARM_CATEGORY_HATE_SPEECH',       'threshold' => 'BLOCK_NONE'],
@@ -65,7 +57,6 @@ class AriAssistant implements Agent, Conversational, HasProviderOptions
                 ],
             ];
         }
-
         return [];
     }
 }

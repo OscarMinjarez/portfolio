@@ -1,24 +1,28 @@
+import useAgent from "@/composables/useAgent";
 import { useBlackboard } from "@/composables/useBlackboard";
 
 export const trackDwell = {
     mounted(el: HTMLElement, binding: any) {
         const { addLog, addInterest } = useBlackboard();
+        const { askAri } = useAgent();
+        
         let timeout: ReturnType<typeof setTimeout>;
         const dwellTime = binding.value?.time || 2000;
         const targetName = binding.value?.name || 'Desconocido';
         const techCategory = binding.value?.tech;
+
         function handleMouseEnter() {
-            console.log(`[Dwell] Iniciando rastreo en: ${targetName} (${dwellTime}ms)`);
-            timeout = setTimeout(() => {
-                console.log(`[Dwell] Umbral filtrado para: ${targetName}`);
-                addLog('INTENT_RADAR', `Dwell detectado: Analizando [${targetName}]`);
+            timeout = setTimeout(async () => {
+                addLog('INTENT_RADAR', `Dwell confirmado en [${targetName}]. Procesando contexto...`);
                 if (techCategory) addInterest(techCategory, 5);
+                await askAri(targetName, techCategory);
             }, dwellTime);
         };
+
         function handleMouseLeave() {
-            console.log(`[Dwell] Abortado: ${targetName}`);
             clearTimeout(timeout);
         };
+
         el.addEventListener('mouseenter', handleMouseEnter);
         el.addEventListener('mouseleave', handleMouseLeave);
         (el as any)._dwellHandlers = { handleMouseEnter, handleMouseLeave };
