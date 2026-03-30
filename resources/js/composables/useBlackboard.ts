@@ -1,6 +1,6 @@
 import { ref, reactive } from 'vue';
 
-const currentFocus = ref<HTMLElement | null>(null);
+const currentFocus = ref<string | null>(null);
 const logs = ref<{ time: string; msg: string; source: string }[]>([]);
 const techInterests = reactive<Record<string, number>>({});
 
@@ -21,7 +21,7 @@ export function useBlackboard() {
         }
     }
 
-    function addTechInterest(tech: string, points: number = 1) {
+    function addInterest(tech: string, points: number = 1) {
         techInterests[tech] = (techInterests[tech] || 0) + points;
     }
 
@@ -31,6 +31,6 @@ export function useBlackboard() {
         techInterests,
         setFocus,
         addLog,
-        addTechInterest,
+        addInterest,
     };
 }

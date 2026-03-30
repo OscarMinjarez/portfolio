@@ -5,6 +5,7 @@ import { createApp, h } from 'vue';
 import '../css/app.css';
 import { initializeTheme } from '@/composables/useAppearance';
 import { trackFocus } from '@/directives/trackFocus';
+import { trackDwell } from './directives/trackDwell';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -19,6 +20,7 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .directive('track', trackFocus)
+            .directive('dwell', trackDwell)
             .mount(el);
     },
     progress: {
