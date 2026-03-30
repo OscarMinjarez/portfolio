@@ -30,4 +30,13 @@ export default defineConfig({
             '@composables': fileURLToPath(new URL('./resources/js/composables', import.meta.url)),
         },
     },
+    server: {
+        host: '0.0.0.0',
+        port: 5173,
+        strictPort: true,
+        cors: true,
+        hmr: {
+            host: '192.168.100.9',
+        }
+    },
 });

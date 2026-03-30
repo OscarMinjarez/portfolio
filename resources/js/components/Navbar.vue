@@ -15,13 +15,6 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll);
 });
-
-const links = [
-    { name: 'Inicio', href: '#inicio' },
-    { name: 'Proyectos', href: '#proyectos' },
-    { name: 'Stack', href: '#stack' },
-    { name: 'Contacto', href: '#contacto' },
-];
 </script>
 
 <template>
@@ -37,27 +30,8 @@ const links = [
             <span class="text-[9px] md:text-[10px] text-primary font-mono uppercase tracking-[0.2em] font-medium leading-none mt-0.5">Software Engineer • AI & Backend</span>
         </div>
 
-        <!-- Links & Theme -->
-        <div class="hidden md:flex items-center gap-10">
-            <div class="flex items-center gap-8">
-                <a 
-                    v-for="link in links" 
-                    :key="link.name" 
-                    :href="link.href"
-                    class="text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors relative group"
-                >
-                    {{ link.name }}
-                    <span class="absolute -bottom-1 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
-                </a>
-            </div>
-            
-            <div class="h-4 w-px bg-border/40"></div>
-
-            <AppearanceTabs />
-        </div>
-
-        <!-- Mobile: Theme toggle only -->
-        <div class="md:hidden">
+        <!-- Theme Toggle -->
+        <div class="flex items-center gap-4">
             <AppearanceTabs />
         </div>
 

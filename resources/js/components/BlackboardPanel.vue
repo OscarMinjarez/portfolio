@@ -74,7 +74,7 @@ function getColor(source: string) {
         ]"
         :class="[
             'fixed z-[150] overflow-hidden flex flex-col shadow-2xl transition-shadow duration-300',
-            'bg-card/90 dark:bg-slate-950/95 backdrop-blur-xl border border-border rounded-lg',
+            'bg-card/70 dark:bg-slate-950/75 backdrop-blur-2xl border border-border/50 rounded-lg',
             !isMinimized ? 'resize both min-w-[280px] min-h-[150px]' : 'pointer-events-auto resize-none'
         ]"
     >
@@ -107,7 +107,7 @@ function getColor(source: string) {
         <div 
             v-show="!isMinimized"
             ref="terminalContainer" 
-            class="p-4 flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-2 scroll-smooth"
+            class="p-4 flex-1 overflow-y-auto font-mono text-[11px] leading-[1.65] space-y-4 scroll-smooth tracking-normal terminal-text"
         >
             <div v-if="logs.length === 0" class="text-muted-foreground/40 italic">Esperando estímulos de la matriz...</div>
             
@@ -132,14 +132,23 @@ function getColor(source: string) {
 </template>
 
 <style scoped>
+::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.terminal-text {
+    font-family: 'Geist Mono', 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+}
+
 ::-webkit-scrollbar {
-    width: 4px;
+    width: 3px;
 }
 ::-webkit-scrollbar-track {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 4px;
+    background: var(--primary);
+    border-radius: 10px;
 }
 </style>
