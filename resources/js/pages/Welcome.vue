@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import AIChat from '@/components/AIChat.vue';
+import AdeniumArt from '@/components/AdeniumArt.vue';
 </script>
 
 <template>
@@ -12,7 +10,7 @@ import AIChat from '@/components/AIChat.vue';
         <div class="max-w-5xl mx-auto space-y-16">
             
             <section>
-                <AIChat />
+                <AdeniumArt />
             </section>
         </div>
     </div>
