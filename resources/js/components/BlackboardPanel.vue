@@ -25,11 +25,23 @@ watch([width, height], ([newW, newH]) => {
     }
 });
 
-const { style } = useDraggable(el, {
-  initialValue: pos,
+const { x, y, style } = useDraggable(el, {
+  initialValue: { x: pos.value.x, y: pos.value.y },
   handle: handle,
   onEnd: (position) => {
-    pos.value = { x: position.x, y: position.y };
+    const margin = 50; 
+    const maxX = window.innerWidth - margin;
+    const maxY = window.innerHeight - margin;
+    
+    if (position.x < -200 || position.y < 0 || position.x > maxX || position.y > maxY) {
+        const randX = 100 + Math.random() * (window.innerWidth - 400);
+        const randY = 100 + Math.random() * (window.innerHeight - 300);
+        x.value = randX;
+        y.value = randY;
+        pos.value = { x: randX, y: randY };
+    } else {
+        pos.value = { x: position.x, y: position.y };
+    }
   }
 });
 
@@ -42,11 +54,12 @@ watch(logs, async function () {
 }, { deep: true });
 
 function getColor(source: string) {
-    if (source === 'OBSERVER') return 'text-blue-400';
+    if (source === 'OBSERVER') return 'text-emerald-400';
     if (source === 'INTENT_RADAR') return 'text-purple-400';
-    if (source === 'AGENT_ARI') return 'text-yellow-400';
+    if (source === 'AGENT_ARI' || source === 'AGENT_NARRATOR') return 'text-amber-400';
+    if (source === 'BLACKBOARD') return 'text-emerald-400';
     if (source === 'SYSTEM_ERROR') return 'text-red-400';
-    return 'text-slate-300';
+    return 'text-slate-400';
 };
 </script>
 
@@ -60,7 +73,7 @@ function getColor(source: string) {
                 : { width: '200px', height: 'auto' }
         ]"
         :class="[
-            'fixed z-50 overflow-hidden flex flex-col shadow-2xl transition-shadow duration-300',
+            'fixed z-[150] overflow-hidden flex flex-col shadow-2xl transition-shadow duration-300',
             'bg-card/90 dark:bg-slate-950/95 backdrop-blur-xl border border-border rounded-lg',
             !isMinimized ? 'resize both min-w-[280px] min-h-[150px]' : 'pointer-events-auto resize-none'
         ]"
@@ -72,7 +85,7 @@ function getColor(source: string) {
         >
             <div class="flex items-center gap-2 overflow-hidden">
                 <GripVertical class="w-3 h-3 text-muted-foreground opacity-30 group-hover:opacity-100 transition-opacity" />
-                <span class="text-[9px] text-muted-foreground font-mono tracking-widest uppercase font-bold truncate">[- SNC -]</span>
+                <span class="text-[9px] text-primary/80 font-mono tracking-widest uppercase font-bold truncate">[- Sistema Nervioso Central -]</span>
             </div>
             
             <div class="flex items-center gap-2">

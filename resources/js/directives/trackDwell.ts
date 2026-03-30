@@ -7,7 +7,7 @@ export const trackDwell = {
         const { askAri } = useAgent();
         
         let timeout: ReturnType<typeof setTimeout>;
-        const dwellTime = binding.value?.time || 2000;
+        const dwellTime = binding.value?.time || 500;
         const targetName = binding.value?.name || 'Desconocido';
         const techCategory = binding.value?.tech;
 

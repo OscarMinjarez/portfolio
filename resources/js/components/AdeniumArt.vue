@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
 
 const hour = ref(new Date().getHours());
 const temp = ref<number | null>(null);
@@ -44,7 +45,7 @@ onMounted(async () => {
 <template>
     <div
         @click="toggleTime"
-        class="relative h-[300px] w-[300px] cursor-pointer overflow-hidden rounded-2xl border border-border shadow-xl"
+        class="relative w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] lg:w-[300px] lg:h-[300px] cursor-pointer overflow-hidden rounded-sm border border-border shadow-2xl"
     >
         <img
             src="/img/Background.png"
@@ -85,15 +86,10 @@ onMounted(async () => {
         ></div>
 
         <div
-            class="absolute right-2 bottom-2 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs text-white capitalize backdrop-blur-md"
+            class="absolute right-1 bottom-1 z-50 flex items-center gap-1 rounded-full border border-white/5 bg-black/40 px-1.5 py-0.25 text-[8px] text-white/90 capitalize backdrop-blur-sm"
         >
-            <span
-                >{{ environment.icon }}
-                {{ temp !== null ? temp + '°C' : '--°C' }}</span
-            >
-            <span class="border-l border-white/20 pl-2 opacity-70"
-                >Obregón, {{ condition }}</span
-            >
+            <span>{{ environment.icon }} {{ temp !== null ? temp + '°' : '--°' }}</span>
+            <span class="border-l border-white/10 pl-1 opacity-60">{{ condition }}</span>
         </div>
     </div>
 </template>
