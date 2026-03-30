@@ -1,27 +1,26 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 
 const hour = ref(new Date().getHours());
 const temp = ref<number | null>(null);
 const condition = ref<string>('cargando...');
 
-const environment = computed(function() {
+const environment = computed(function () {
     if (hour.value >= 6 && hour.value < 18) {
         return {
             treeFilter: 'brightness-100',
-            icon: '☀️'
-        }
+            icon: '☀️',
+        };
     } else if (hour.value >= 18 && hour.value < 20) {
         return {
             treeFilter: 'brightness-75 sepia-[.3]',
-            icon: '🌇'
-        }
+            icon: '🌇',
+        };
     } else {
         return {
             treeFilter: 'brightness-50 contrast-125',
-            icon: '🌙'
-        }
+            icon: '🌙',
+        };
     }
 });
 
@@ -35,7 +34,7 @@ onMounted(async () => {
         temp.value = Math.round(response.data.main.temp);
         condition.value = response.data.weather[0].description;
     } catch (error) {
-        console.error("No se pudo cargar el clima", error);
+        console.error('No se pudo cargar el clima', error);
         temp.value = 35;
         condition.value = 'soleado';
     }
@@ -43,37 +42,58 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div 
+    <div
         @click="toggleTime"
-        class="relative w-[300px] h-[300px] rounded-2xl overflow-hidden border border-slate-800 shadow-xl cursor-pointer"
+        class="relative h-[300px] w-[300px] cursor-pointer overflow-hidden rounded-2xl border border-border shadow-xl"
     >
-        <img 
-            src="/img/Background.png" 
+        <img
+            src="/img/Background.png"
             alt="Fondo"
-            :class="['absolute inset-0 w-full h-full object-cover z-0 transition-all duration-1000', environment.treeFilter]"
+            :class="[
+                'absolute inset-0 z-0 h-full w-full object-cover transition-all duration-1000',
+                environment.treeFilter,
+            ]"
         />
 
-        <img 
-            src="/img/Adenium.png" 
+        <img
+            src="/img/Adenium.png"
             alt="Oak"
-            :class="['absolute inset-0 w-full h-full object-contain z-20 transition-all duration-1000', environment.treeFilter]"
+            :class="[
+                'absolute inset-0 z-20 h-full w-full object-contain transition-all duration-1000',
+                environment.treeFilter,
+            ]"
         />
-        <img 
-            src="/img/Adenium2.png" 
+        <img
+            src="/img/Adenium2.png"
             alt="Leaves"
-            :class="['absolute inset-0 w-full h-full object-contain z-30 transition-all duration-1000', environment.treeFilter]"
+            :class="[
+                'absolute inset-0 z-30 h-full w-full object-contain transition-all duration-1000',
+                environment.treeFilter,
+            ]"
         />
-        <img 
-            src="/img/Adenium3.png" 
+        <img
+            src="/img/Adenium3.png"
             alt="Flowers"
-            :class="['absolute inset-0 w-full h-full object-contain z-40 transition-all duration-1000', environment.treeFilter]"
+            :class="[
+                'absolute inset-0 z-40 h-full w-full object-contain transition-all duration-1000',
+                environment.treeFilter,
+            ]"
         />
-        
-        <div class="absolute bottom-0 w-full h-1/5 bg-gradient-to-t from-black/60 to-transparent z-50 pointer-events-none"></div>
 
-        <div class="absolute bottom-2 right-2 z-50 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs text-white flex items-center gap-2 capitalize">
-            <span>{{ environment.icon }} {{ temp !== null ? temp + '°C' : '--°C' }}</span>
-            <span class="opacity-70 border-l border-white/20 pl-2">Obregón, {{ condition }}</span>
+        <div
+            class="pointer-events-none absolute bottom-0 z-50 h-1/5 w-full bg-gradient-to-t from-black/60 to-transparent"
+        ></div>
+
+        <div
+            class="absolute right-2 bottom-2 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs text-white capitalize backdrop-blur-md"
+        >
+            <span
+                >{{ environment.icon }}
+                {{ temp !== null ? temp + '°C' : '--°C' }}</span
+            >
+            <span class="border-l border-white/20 pl-2 opacity-70"
+                >Obregón, {{ condition }}</span
+            >
         </div>
     </div>
 </template>
