@@ -4,7 +4,6 @@ import { Head } from '@inertiajs/vue3';
 import Navbar from '@/components/Navbar.vue';
 import AdeniumArt from '@/components/AdeniumArt.vue';
 import BlackboardPanel from '@/components/BlackboardPanel.vue';
-import AppearanceTabs from '@/components/AppearanceTabs.vue';
 
 const props = defineProps<{
     projects: Array<{
@@ -82,10 +81,6 @@ function getScatterClass() {
 
     <Navbar />
     <BlackboardPanel />
-
-    <div class="fixed top-24 right-6 z-[60]">
-        <AppearanceTabs />
-    </div>
 
     <div class="h-screen w-full bg-background text-foreground relative overflow-hidden transition-colors duration-500 flex flex-col lg:flex-row">
         

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import AppearanceTabs from './AppearanceTabs.vue';
 
 const isScrolled = ref(false);
 
@@ -36,24 +37,29 @@ const links = [
             <span class="text-[9px] md:text-[10px] text-primary font-mono uppercase tracking-[0.2em] font-medium leading-none mt-0.5">Software Engineer • AI & Backend</span>
         </div>
 
-        <!-- Links -->
-        <div class="hidden md:flex items-center gap-8">
-            <a 
-                v-for="link in links" 
-                :key="link.name" 
-                :href="link.href"
-                class="text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors relative group"
-            >
-                {{ link.name }}
-                <span class="absolute -bottom-1 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
-            </a>
+        <!-- Links & Theme -->
+        <div class="hidden md:flex items-center gap-10">
+            <div class="flex items-center gap-8">
+                <a 
+                    v-for="link in links" 
+                    :key="link.name" 
+                    :href="link.href"
+                    class="text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors relative group"
+                >
+                    {{ link.name }}
+                    <span class="absolute -bottom-1 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
+                </a>
+            </div>
+            
+            <div class="h-4 w-px bg-border/40"></div>
+
+            <AppearanceTabs />
         </div>
 
-        <!-- Mobile Menu (Very basic for now) -->
-        <button class="md:hidden p-2 text-primary">
-            <div class="w-5 h-px bg-current mb-1.5"></div>
-            <div class="w-5 h-px bg-current"></div>
-        </button>
+        <!-- Mobile: Theme toggle only -->
+        <div class="md:hidden">
+            <AppearanceTabs />
+        </div>
 
     </nav>
 </template>
