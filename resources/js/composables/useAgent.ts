@@ -2,6 +2,7 @@ import axios from "axios";
 import { useBlackboard } from "@composables/useBlackboard";
 
 const visitedNodes = new Set<string>();
+const cachedDetails = new Map<string, string>();
 
 export default function useAgent() {
     const { addLog, isMinimized } = useBlackboard();
@@ -59,12 +60,20 @@ export default function useAgent() {
 
     async function askDetails(focus: string) {
         if (isMinimized.value) isMinimized.value = false;
+        
+        if (cachedDetails.has(focus)) {
+            addLog('USER_ACTION', `Reabriendo arquitectura de [${focus}] desde caché...`);
+            addLog('AGENT_ARI', cachedDetails.get(focus)!);
+            return;
+        }
+
         addLog('USER_ACTION', `Clic detectado en [${focus}]. Extrayendo arquitectura completa...`);
         try {
             const response = await axios.post("/api/agent/details", {
                 context: { focus }
             });
             if (response.data.details) {
+                cachedDetails.set(focus, response.data.details);
                 addLog('AGENT_ARI', response.data.details);
             }
         } catch (error) {
@@ -73,8 +82,20 @@ export default function useAgent() {
         }
     }
 
+    async function askWelcome() {
+        try {
+            const response = await axios.post("/api/agent/welcome");
+            if (response.data.insight) {
+                addLog('AGENT_ARI', response.data.insight);
+            }
+        } catch (error) {
+            console.error('[Agent API Error]:', error);
+        }
+    }
+
     return {
         askAri,
-        askDetails
+        askDetails,
+        askWelcome
     };
 }

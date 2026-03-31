@@ -10,8 +10,8 @@ import BlackboardPanel from '@/components/BlackboardPanel.vue';
 import useAgent from '@/composables/useAgent';
 import { useBlackboard } from '@/composables/useBlackboard';
 
-const { askDetails } = useAgent();
-const { addLog } = useBlackboard();
+const { askDetails, askWelcome } = useAgent();
+const { isMinimized } = useBlackboard();
 
 const props = defineProps<{
     projects: Array<{
@@ -103,7 +103,7 @@ function startTour() {
                 element: '#monitor-ia',
                 popover: { 
                     title: 'Panel de Ari', 
-                    description: 'Conoce a Ari, mi asistente personal de IA. Ella te acompañará mientras exploras y te presentará mis proyectos en tiempo real.',
+                    description: 'Conoce a Ari, mi asistente personal de IA. Ella te acompañará mientras exploras. Cuando quieras leer después, puedes minimizarla y regresará a ser una notificación en la esquina.',
                     side: "bottom", 
                     align: "start"
                 } 
@@ -118,30 +118,26 @@ function startTour() {
                 } 
             }
         ],
+        onPopoverRender: (popover: any) => {
+            if (driverObj.getActiveIndex() === 1) {
+                isMinimized.value = false;
+            }
+        },
         onDestroyStarted: () => {
             localStorage.setItem('tour_visto', 'true');
             driverObj.destroy();
-            setTimeout(() => showWelcomeMessage(), 500);
+            isMinimized.value = true;
+            setTimeout(() => askWelcome(), 500);
         }
     });
     driverObj.drive();
 };
 
-function showWelcomeMessage() {
-    addLog('SYSTEM_HINT', '👋 ¡Hola! Soy Ari, la inteligencia artificial que asiste a Oscar.');
-    setTimeout(() => {
-        addLog('SYSTEM_HINT', 'Mi panel es interactivo: muévelo desde el borde superior, cambia su tamaño desde cualquier esquina o minimízalo si ocupas espacio.');
-    }, 1500);
-    setTimeout(() => {
-        addLog('SYSTEM_HINT', '💡 Aunque me reduzcas, si le das clic a cualquier tarjeta, volveré a abrirme solita para contarte todos los detalles.');
-    }, 3500);
-}
-
 onMounted(() => {
     if (!localStorage.getItem('tour_visto')) {
         setTimeout(() => startTour(), 1000);
     } else {
-        setTimeout(() => showWelcomeMessage(), 1000);
+        setTimeout(() => askWelcome(), 1000);
     }
 });
 </script>

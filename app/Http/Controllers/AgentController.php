@@ -82,4 +82,20 @@ class AgentController extends Controller
             return response()->json(['details' => 'Un buffer overflow interrumpió la extracción del reporte arquitectónico.'], 500);
         }
     }
+
+    public function generateWelcome(Request $request)
+    {
+        $agent = new AriAssistant();
+        $agent->lengthRule = 'Responder con un saludo súper breve (máximo 1 párrafo o 2 oraciones).';
+        try {
+            $instruccion = 'Eres Ari, la asistente virtual de Oscar. El usuario acaba de terminar un tutorial interactivo visual. Escribe un mensaje cortito y amigable donde le avises que tú "te quedas aquí guardada en la esquina por si ocupa", y que nomás le dé clic a cualquier proyecto cuando quiera ver los fierros (código). Usa tu tono norteño relajado.';
+            $response = $agent->prompt($instruccion);
+            $insightText = trim($response->text ?? '');
+            $insightText = str_replace(['```json', '```', '```html'], '', $insightText);
+            return response()->json(['insight' => trim($insightText)]);
+        } catch (\Exception $e) {
+            Log::channel('ari')->error('Fallo de saludo:', ['error' => $e->getMessage()]);
+            return response()->json(['insight' => '¡Hola! Soy Ari, tu asistente personal hoy. Mi panel de conexión falló un poco, pero explora con confianza y haz clic en los proyectos para ver los detalles.'], 500);
+        }
+    }
 }
