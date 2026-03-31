@@ -1,0 +1,13 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify Deployment
+        run: curl -k -X GET "${{ secrets.COOLIFY_WEBHOOK }}"
