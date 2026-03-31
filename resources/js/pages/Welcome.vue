@@ -31,56 +31,15 @@ const props = defineProps<{
     }>;
 }>();
 
-const itemStyles = ref<any[]>([]);
-
-const scatteredItems = computed(function () {
+const mixedItems = computed(function () {
     const items: any[] = [];
     props.work_experiences?.forEach(job => items.push({ type: 'job', data: job }));
     props.projects?.forEach(proj => items.push({ type: 'project', data: proj }));
-    
-    return items.map((item, index) => {
-        if (!itemStyles.value[index]) {
-            let left = 0;
-            let top = 0;
-            let attempts = 0;
-            let isOverlapping = true;
-            const marginW = 16; 
-            const marginH = 14;
-            while (isOverlapping && attempts < 50) {
-                left = 3 + (Math.random() * 50); 
-                top = 16 + (Math.random() * 64);
-                isOverlapping = false;
-                for (let i = 0; i < index; i++) {
-                    const prev = itemStyles.value[i];
-                    if (!prev) continue;
-                    const prevLeft = parseFloat(prev.left);
-                    const prevTop = parseFloat(prev.top);
-                    const diffX = Math.abs(left - prevLeft);
-                    const diffY = Math.abs(top - prevTop);
-                    if (diffX < marginW && diffY < marginH) {
-                        isOverlapping = true;
-                        break;
-                    }
-                }
-                attempts++;
-            }
-            const rotation = (Math.random() * 6) - 3;
-            itemStyles.value[index] = {
-                left: `${left}%`,
-                top: `${top}%`,
-                '--rotate-angle': `${rotation}deg`,
-                zIndex: 10 + index
-            };
-        }
-        return {
-            ...item,
-            style: itemStyles.value[index]
-        };
-    });
+    return items;
 });
 
-function getScatterClass() {
-    return 'lg:absolute relative w-full lg:w-[320px] xl:w-[360px] mb-6 lg:mb-0 transition-all duration-700 ease-out hover:!z-[100] lg:hover:-translate-y-2 lg:hover:scale-105 group card-scatter';
+function getCardClass() {
+    return 'break-inside-avoid relative w-full mb-6 transition-all duration-300 ease-out hover:z-10 hover:-translate-y-1 hover:shadow-xl hover:scale-[1.02] group rounded-2xl';
 };
 
 function startTour() {
@@ -148,9 +107,9 @@ onMounted(() => {
     <Navbar />
     <BlackboardPanel />
 
-    <div class="h-screen w-full bg-background text-foreground relative overflow-hidden transition-colors duration-500 flex flex-col lg:flex-row">
+    <div class="min-h-screen w-full bg-background text-foreground relative transition-colors duration-500 flex flex-col lg:flex-row">
         
-        <div class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20 dark:opacity-10 z-0">
+        <div class="fixed top-0 left-0 w-full h-full pointer-events-none opacity-20 dark:opacity-10 z-0">
             <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-500/20 blur-[120px] rounded-full"></div>
             <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-purple-500/20 blur-[120px] rounded-full"></div>
         </div>
@@ -162,53 +121,54 @@ onMounted(() => {
             </div>
         </div>
 
-        <div class="w-full lg:w-[60%] h-full pt-12 lg:pt-0 px-6 lg:px-0 overflow-y-auto lg:overflow-visible relative z-20">
-            <div 
-                v-for="(item, index) in scatteredItems" 
-                :key="index"
-                :class="getScatterClass()"
-                :style="item.style"
-            >
-                <!-- Project Card -->
+        <div class="w-full lg:w-[50%] xl:w-[55%] pt-10 px-6 lg:pl-12 lg:pr-8 relative z-20">
+            <div class="min-h-screen pt-24 lg:pt-32 pb-32 columns-1 xl:columns-2 gap-6 w-full max-w-5xl mx-auto card-scatter">
                 <div 
-                    v-if="item.type === 'project'"
-                    @click="askDetails(item.data.title)"
-                    v-track="{ name: item.data.title }" 
-                    v-dwell="{ name: item.data.title, time: 3000, tech: item.data.stack[0] || 'general' }"
-                    class="p-5 border border-border/50 dark:border-primary/20 rounded-2xl bg-card hover:border-primary/50 dark:hover:border-primary transition-all shadow-lg hover:shadow-primary/10 dark:shadow-black/20 cursor-pointer outline-1 outline-transparent group/card"
+                    v-for="(item, index) in mixedItems" 
+                    :key="index"
+                    :class="getCardClass()"
                 >
-                    <h3 class="text-lg font-semibold mb-2 text-foreground group-hover/card:text-primary transition-colors">{{ item.data.title }}</h3>
-                    <p class="text-xs text-muted-foreground mb-4 leading-relaxed line-clamp-3">{{ item.data.summary }}</p>
+                    <!-- Project Card -->
+                    <div 
+                        v-if="item.type === 'project'"
+                        @click="askDetails(item.data.title)"
+                        v-track="{ name: item.data.title }" 
+                        v-dwell="{ name: item.data.title, time: 3000, tech: item.data.stack[0] || 'general' }"
+                        class="h-full p-6 md:p-7 border border-border/50 dark:border-primary/20 rounded-2xl bg-card hover:border-primary/50 dark:hover:border-primary transition-all shadow-lg hover:shadow-primary/10 dark:shadow-black/20 cursor-pointer outline-1 outline-transparent group/card"
+                    >
+                    <h3 class="text-xl font-bold mb-3 text-foreground group-hover/card:text-primary transition-colors">{{ item.data.title }}</h3>
+                    <p class="text-sm text-foreground/80 dark:text-muted-foreground mb-5 leading-relaxed line-clamp-3">{{ item.data.summary }}</p>
                     
-                    <div class="flex flex-wrap gap-1.5">
+                    <div class="flex flex-wrap gap-2">
                         <span 
                             v-for="tech in item.data.stack.slice(0, 3)" 
                             :key="tech" 
-                            class="px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider rounded border border-border/50 dark:border-primary/20 bg-secondary/30 text-secondary-foreground"
+                            class="px-2.5 py-1 text-[10px] md:text-xs font-mono font-medium uppercase tracking-wider rounded-md border border-border/50 dark:border-primary/20 bg-secondary/50 text-secondary-foreground"
                         >
                             {{ tech }}
                         </span>
-                        <span v-if="item.data.stack.length > 3" class="px-2 py-0.5 text-[9px] font-mono text-muted-foreground">
+                        <span v-if="item.data.stack.length > 3" class="px-2.5 py-1 text-[10px] md:text-xs font-mono font-medium text-muted-foreground flex items-center">
                             +{{ item.data.stack.length - 3 }}
                         </span>
                     </div>
-                </div>
-
-                <!-- Experience Card -->
-                <div 
-                    v-else
-                    @click="askDetails(item.data.company)"
-                    v-track="{ name: item.data.company }" 
-                    v-dwell="{ name: item.data.company, time: 3000, tech: 'backend' }"
-                    class="p-5 border border-border/50 dark:border-primary/20 rounded-2xl bg-card hover:border-primary/50 dark:hover:border-primary transition-all shadow-lg hover:shadow-primary/10 dark:shadow-black/20 cursor-pointer outline-1 outline-transparent group/card"
-                >
-                    <h3 class="text-lg font-semibold text-foreground mb-1 group-hover/card:text-primary transition-colors">{{ item.data.position }}</h3>
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="text-xs text-primary font-medium">{{ item.data.company }}</span>
-                        <span class="w-1 h-1 rounded-full bg-border"></span>
-                        <span class="text-[10px] text-muted-foreground font-mono">{{ item.data.start_date.substring(0,4) }} - {{ item.data.end_date ? item.data.end_date.substring(0,4) : 'Presente' }}</span>
                     </div>
-                    <p class="text-xs text-muted-foreground leading-relaxed line-clamp-3">{{ item.data.description }}</p>
+
+                    <!-- Experience Card -->
+                    <div 
+                        v-else
+                        @click="askDetails(item.data.company)"
+                        v-track="{ name: item.data.company }" 
+                        v-dwell="{ name: item.data.company, time: 3000, tech: 'backend' }"
+                        class="h-full p-6 md:p-7 border border-border/50 dark:border-primary/20 rounded-2xl bg-card hover:border-primary/50 dark:hover:border-primary transition-all shadow-lg hover:shadow-primary/10 dark:shadow-black/20 cursor-pointer outline-1 outline-transparent group/card"
+                    >
+                    <h3 class="text-xl font-bold text-foreground mb-1 group-hover/card:text-primary transition-colors">{{ item.data.position }}</h3>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="text-sm text-primary font-medium">{{ item.data.company }}</span>
+                        <span class="w-1 h-1 rounded-full bg-border"></span>
+                        <span class="text-[11px] md:text-xs text-muted-foreground font-mono font-medium">{{ item.data.start_date.substring(0,4) }} - {{ item.data.end_date ? item.data.end_date.substring(0,4) : 'Presente' }}</span>
+                    </div>
+                        <p class="text-sm text-foreground/80 dark:text-muted-foreground leading-relaxed line-clamp-3">{{ item.data.description }}</p>
+                    </div>
                 </div>
             </div>
             <!-- Espaciador final para scroll móvil -->
@@ -216,8 +176,8 @@ onMounted(() => {
         </div>
 
         <!-- Escritorio: Art section -->
-        <div class="absolute right-0 top-0 w-full lg:w-[45%] h-full hidden lg:flex items-center justify-center pointer-events-none z-10">
-            <div class="transform scale-150 xl:scale-[2.2] origin-center pointer-events-auto">
+        <div class="fixed right-0 top-[10vh] xl:top-0 w-full lg:w-[50%] xl:w-[45%] h-full hidden lg:flex flex-col items-center justify-center pointer-events-none z-10 pb-16 xl:pb-0">
+            <div class="transform scale-[1.6] xl:scale-[2.2] 2xl:scale-[2.5] origin-center pointer-events-auto transition-transform duration-[2s] ease-in-out hover:scale-[1.65] xl:hover:scale-[2.25] 2xl:hover:scale-[2.55]">
                 <AdeniumArt />
             </div>
         </div>
@@ -226,26 +186,5 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.card-scatter {
-    rotate: var(--rotate-angle, 0deg);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    transform-style: preserve-3d;
-    will-change: transform, rotate;
-    /* Optimización de nitidez extrema */
-    filter: blur(0);
-    perspective: 1000px;
-    image-rendering: -webkit-optimize-contrast;
-    transform: translateZ(0);
-}
-
-.card-scatter:hover {
-    rotate: 0deg;
-}
-
-@media (max-width: 1024px) {
-    .card-scatter {
-        rotate: 0deg !important;
-    }
-}
+/* Eliminated standard blur */
 </style>

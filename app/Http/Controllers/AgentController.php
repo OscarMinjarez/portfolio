@@ -88,7 +88,7 @@ class AgentController extends Controller
         $agent = new AriAssistant();
         $agent->lengthRule = 'Responder con un saludo súper breve (máximo 1 párrafo o 2 oraciones).';
         try {
-            $instruccion = 'Eres Ari, la asistente virtual de Oscar. El usuario acaba de terminar un tutorial interactivo visual. Escribe un mensaje cortito y amigable donde le avises que tú "te quedas aquí guardada en la esquina por si ocupa", y que nomás le dé clic a cualquier proyecto cuando quiera ver los fierros (código). Usa tu tono norteño relajado.';
+            $instruccion = 'Eres Ari, la asistente virtual de Oscar. El usuario acaba de terminar un tutorial interactivo. Escribe un mensaje cortito, amigable y muy profesional, donde le avises que te quedas minimizada en la esquina "por si ocupa", y que con gusto le detallarás la arquitectura técnica si da clic a cualquier proyecto. Usa tu tono norteño pero educado y formal, EVITANDO POR COMPLETO palabras ambiguas, doble sentido o coloquialismos vulgares. MUY IMPORTANTE: NO MENCIONES ni listes ninguna tecnología, framework o lenguaje de programación específico en este saludo de bienvenida, mantén tu invitación completamente general a revisar la arquitectura.';
             $response = $agent->prompt($instruccion);
             $insightText = trim($response->text ?? '');
             $insightText = str_replace(['```json', '```', '```html'], '', $insightText);
