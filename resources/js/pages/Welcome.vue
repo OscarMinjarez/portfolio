@@ -177,7 +177,7 @@ onMounted(() => {
 
         <!-- Escritorio: Art section -->
         <div class="fixed right-0 top-[10vh] xl:top-0 w-full lg:w-[50%] xl:w-[45%] h-full hidden lg:flex flex-col items-center justify-center pointer-events-none z-10 pb-16 xl:pb-0">
-            <div class="transform scale-[1.6] xl:scale-[2.2] 2xl:scale-[2.5] origin-center pointer-events-auto transition-transform duration-[2s] ease-in-out hover:scale-[1.65] xl:hover:scale-[2.25] 2xl:hover:scale-[2.55]">
+            <div class="transform scale-[1.6] xl:scale-[2.2] 2xl:scale-[2.5] origin-center pointer-events-auto transition-transform duration-[2s] ease-in-out hover:scale-[1.65]">
                 <AdeniumArt />
             </div>
         </div>

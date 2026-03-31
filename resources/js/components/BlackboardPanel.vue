@@ -62,14 +62,16 @@ function getColor(source: string) {
 
                 <div 
                     ref="terminalContainer" 
-                    class="p-4 flex-1 overflow-y-auto font-mono text-[11px] leading-[1.65] space-y-4 scroll-smooth tracking-normal terminal-text"
+                    class="p-4 flex-1 overflow-y-auto font-mono text-sm leading-relaxed space-y-4 scroll-smooth tracking-normal terminal-text"
                 >
                     <div v-if="logs.length === 0" class="text-muted-foreground/40 italic">Esperando estímulos de la matriz...</div>
                     
-                    <div v-for="(log, index) in logs" :key="index" class="flex items-start gap-2 break-words text-foreground/90 dark:text-slate-300">
-                        <span class="text-muted-foreground shrink-0 opacity-40 font-light font-mono text-[10px]">[{{ log.time }}]</span>
-                        <span :class="['font-bold shrink-0 uppercase text-[10px]', getColor(log.source)]">{{ log.source.replace('AGENT_ARI', 'ARI').replace('SYSTEM_ERROR', 'ERROR') }}:</span>
-                        <span class="flex-1">{{ log.msg }}</span>
+                    <div v-for="(log, index) in logs" :key="index" class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 break-words text-foreground/90 dark:text-slate-300">
+                        <div class="flex items-center gap-2 shrink-0 sm:pt-1">
+                            <span class="text-muted-foreground opacity-50 font-light font-mono text-[11px]">[{{ log.time }}]</span>
+                            <span :class="['font-bold uppercase text-xs', getColor(log.source)]">{{ log.source.replace('AGENT_ARI', 'ARI').replace('SYSTEM_ERROR', 'ERROR') }}:</span>
+                        </div>
+                        <span class="flex-1 mt-1 sm:mt-0 text-[13px] md:text-sm font-medium">{{ log.msg }}</span>
                     </div>
                 </div>
             </div>

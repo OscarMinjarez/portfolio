@@ -70,9 +70,9 @@ class AgentController extends Controller
         }
         
         $agent = new AriAssistant();
-        $agent->lengthRule = 'Tu respuesta DEBE SER elaborada y técnica, estructurada en 2 o 3 párrafos cortos (o viñetas). Usa formato Markdown si es necesario.';
+        $agent->lengthRule = 'REGLA ESTRICTA DE LONGITUD: Tu respuesta debe ser EXTREMADAMENTE BREVE y ultra-concisa. Escribe un solo párrafo contundente (máximo 40 a 50 palabras en total). Si te pasas, arruinarás el diseño de la terminal UI.';
         try {
-            $instruccion = "Eres Ari, un ingeniero de software senior revisando este proyecto. Basado en este contexto técnico: '{$contextoReal}', genera una explicación elaborada pero concisa (máximo 3 párrafos o puntos clave) de la arquitectura, decisiones de diseño o el impacto del sistema. Mantén tu tono técnico y directo.";
+            $instruccion = "Eres Ari, una ingeniera de software senior. Contexto técnico puro: '{$contextoReal}'.\nRedacta un resumen directo sobre la arquitectura de este proyecto, evitando paja. Mantén el tono técnico, formal y norteño.";
             $response = $agent->prompt($instruccion);
             $insightText = trim($response->text ?? '');
             $insightText = str_replace(['```json', '```', '```html'], '', $insightText);
