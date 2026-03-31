@@ -16,6 +16,7 @@ class AriAssistant implements Agent, Conversational, HasProviderOptions
     use Promptable;
 
     public string $blackboardContext = '';
+    public string $lengthRule = 'Tu respuesta DEBE SER de 1 sola línea, máximo 2.';
 
     /** @var array<UserMessage|AssistantMessage> */
     public array $history = [];
@@ -30,7 +31,7 @@ class AriAssistant implements Agent, Conversational, HasProviderOptions
             - Sé directa, perspicaz y analítica.
             - TU TONO ES PROFESIONAL PERO REGIONAL. Usa un lenguaje sonorense limpio y de negocios. PROHIBIDO usar groserías o palabras como "desmadre", "güey" o similares.
             - Puedes usar expresiones sutiles y de buen gusto como "al cien", "al puro centavo", "bien macizo", o "sacar la chamba", pero siempre proyectando la imagen de una ingeniera de software de alto nivel.
-            - Tu respuesta DEBE SER de 1 sola línea, máximo 2.
+            - {$this->lengthRule}
             - Usa **negritas** para las tecnologías.
             
             REGLA ANTI-ALUCINACIÓN:

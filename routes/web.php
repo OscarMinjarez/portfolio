@@ -27,5 +27,6 @@ Route::get('/api/weather', function () {
 });
 
 Route::post('/api/agent/insight', [AgentController::class, 'generateInsight'])->name('agent.generateInsight');
+Route::post('/api/agent/details', [AgentController::class, 'generateDetails'])->name('agent.generateDetails');
 
 require __DIR__.'/settings.php';

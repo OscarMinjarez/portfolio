@@ -4,7 +4,7 @@ import { useBlackboard } from "@composables/useBlackboard";
 const visitedNodes = new Set<string>();
 
 export default function useAgent() {
-    const { addLog } = useBlackboard();
+    const { addLog, isMinimized } = useBlackboard();
 
     async function askAri(focus: string, tech: string = "general") {
         if (visitedNodes.has(focus)) {
@@ -37,7 +37,7 @@ export default function useAgent() {
             ];
             const randomPhrase = revisitPhrases[Math.floor(Math.random() * revisitPhrases.length)];            
             addLog('AGENT_ARI', randomPhrase);
-            return; 
+            return false;
         }
         visitedNodes.add(focus);
         try {
@@ -49,13 +49,32 @@ export default function useAgent() {
             if (response.data.insight) {
                 addLog('AGENT_ARI', response.data.insight);
             }
+            return true;
         } catch (error) {
             addLog('SYSTEM_ERROR', 'Fallo en la conexión neuronal con el backend.');
+            console.error('[Agent API Error]:', error);
+            return false;
+        }
+    }
+
+    async function askDetails(focus: string) {
+        if (isMinimized.value) isMinimized.value = false;
+        addLog('USER_ACTION', `Clic detectado en [${focus}]. Extrayendo arquitectura completa...`);
+        try {
+            const response = await axios.post("/api/agent/details", {
+                context: { focus }
+            });
+            if (response.data.details) {
+                addLog('AGENT_ARI', response.data.details);
+            }
+        } catch (error) {
+            addLog('SYSTEM_ERROR', 'Fallo en la extracción de detalles.');
             console.error('[Agent API Error]:', error);
         }
     }
 
     return {
-        askAri
+        askAri,
+        askDetails
     };
 }

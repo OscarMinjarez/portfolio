@@ -7,20 +7,34 @@ export const trackDwell = {
         const { askAri } = useAgent();
         
         let timeout: ReturnType<typeof setTimeout>;
+        let secondaryTimeout: ReturnType<typeof setTimeout>;
+        let isHovering = false;
+        
         const dwellTime = binding.value?.time || 500;
         const targetName = binding.value?.name || 'Desconocido';
         const techCategory = binding.value?.tech;
 
         function handleMouseEnter() {
+            isHovering = true;
             timeout = setTimeout(async () => {
-                addLog('INTENT_RADAR', `Dwell confirmado en [${targetName}]. Procesando contexto...`);
+                addLog('HOVER_EVENT', `Analizando rápidamente: [${targetName}]...`);
                 if (techCategory) addInterest(techCategory, 5);
-                await askAri(targetName, techCategory);
+                const isNewVisit = await askAri(targetName, techCategory);
+
+                if (isNewVisit && isHovering) {
+                    secondaryTimeout = setTimeout(() => {
+                        if (isHovering) {
+                            addLog('SYSTEM_HINT', `Si haces clic en [${targetName}], solicitaré su arquitectura técnica completa.`);
+                        }
+                    }, 3500);
+                }
             }, dwellTime);
         };
 
         function handleMouseLeave() {
+            isHovering = false;
             clearTimeout(timeout);
+            clearTimeout(secondaryTimeout);
         };
 
         el.addEventListener('mouseenter', handleMouseEnter);

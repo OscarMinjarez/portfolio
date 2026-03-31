@@ -279,7 +279,7 @@ class DatabaseSeeder extends Seeder
             README;
 
         Project::create([
-            'title' => 'Zanate Nunchi | Arquitecto de IA',
+            'title' => 'Zanate Nunchi | Compañero de IA',
             'slug' => 'zanate-nunchi',
             'summary' => 'Mod de Minecraft (Fabric 1.21.6) que integra compañeros virtuales impulsados por LLMs locales (Ollama).',
             'content' => 'Implementación de una arquitectura de Pizarra (Blackboard) y un sistema basado en Observers para el análisis de contexto espacial en tiempo real. Incluye un motor de mapeos dialectales (Anti-drift) que soporta 13 idiomas y 17 variantes regionales, garantizando modismos específicos.',

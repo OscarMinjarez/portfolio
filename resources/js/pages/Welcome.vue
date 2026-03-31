@@ -7,6 +7,11 @@ import 'driver.js/dist/driver.css';
 import Navbar from '@/components/Navbar.vue';
 import AdeniumArt from '@/components/AdeniumArt.vue';
 import BlackboardPanel from '@/components/BlackboardPanel.vue';
+import useAgent from '@/composables/useAgent';
+import { useBlackboard } from '@/composables/useBlackboard';
+
+const { askDetails } = useAgent();
+const { addLog } = useBlackboard();
 
 const props = defineProps<{
     projects: Array<{
@@ -90,15 +95,15 @@ function startTour() {
         steps: [
             { 
                 popover: { 
-                    title: 'Portafolio Interactivo', 
+                    title: 'Portafolio de Oscar', 
                     description: 'Esto no es un currículum estático. Estás a punto de interactuar con una arquitectura conectada a la base de datos central.' 
                 } 
             },
             { 
                 element: '#monitor-ia',
                 popover: { 
-                    title: 'Sistema Nervioso', 
-                    description: 'Esta es la consola de mi Agente de IA. Vigila tu navegación y te soltará insights técnicos sobre mi experiencia en tiempo real.',
+                    title: 'Panel de Ari', 
+                    description: 'Conoce a Ari, mi asistente personal de IA. Ella te acompañará mientras exploras y te presentará mis proyectos en tiempo real.',
                     side: "bottom", 
                     align: "start"
                 } 
@@ -116,14 +121,27 @@ function startTour() {
         onDestroyStarted: () => {
             localStorage.setItem('tour_visto', 'true');
             driverObj.destroy();
+            setTimeout(() => showWelcomeMessage(), 500);
         }
     });
     driverObj.drive();
 };
 
+function showWelcomeMessage() {
+    addLog('SYSTEM_HINT', '👋 ¡Hola! Soy Ari, la inteligencia artificial que asiste a Oscar.');
+    setTimeout(() => {
+        addLog('SYSTEM_HINT', 'Mi panel es interactivo: muévelo desde el borde superior, cambia su tamaño desde cualquier esquina o minimízalo si ocupas espacio.');
+    }, 1500);
+    setTimeout(() => {
+        addLog('SYSTEM_HINT', '💡 Aunque me reduzcas, si le das clic a cualquier tarjeta, volveré a abrirme solita para contarte todos los detalles.');
+    }, 3500);
+}
+
 onMounted(() => {
     if (!localStorage.getItem('tour_visto')) {
         setTimeout(() => startTour(), 1000);
+    } else {
+        setTimeout(() => showWelcomeMessage(), 1000);
     }
 });
 </script>
@@ -158,6 +176,7 @@ onMounted(() => {
                 <!-- Project Card -->
                 <div 
                     v-if="item.type === 'project'"
+                    @click="askDetails(item.data.title)"
                     v-track="{ name: item.data.title }" 
                     v-dwell="{ name: item.data.title, time: 3000, tech: item.data.stack[0] || 'general' }"
                     class="p-5 border border-border/50 dark:border-primary/20 rounded-2xl bg-card hover:border-primary/50 dark:hover:border-primary transition-all shadow-lg hover:shadow-primary/10 dark:shadow-black/20 cursor-pointer outline-1 outline-transparent group/card"
@@ -182,6 +201,7 @@ onMounted(() => {
                 <!-- Experience Card -->
                 <div 
                     v-else
+                    @click="askDetails(item.data.company)"
                     v-track="{ name: item.data.company }" 
                     v-dwell="{ name: item.data.company, time: 3000, tech: 'backend' }"
                     class="p-5 border border-border/50 dark:border-primary/20 rounded-2xl bg-card hover:border-primary/50 dark:hover:border-primary transition-all shadow-lg hover:shadow-primary/10 dark:shadow-black/20 cursor-pointer outline-1 outline-transparent group/card"

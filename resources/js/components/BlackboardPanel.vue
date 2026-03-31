@@ -4,12 +4,11 @@ import { useBlackboard } from '../composables/useBlackboard';
 import { useDraggable, useStorage, useElementSize } from '@vueuse/core';
 import { Minus, Plus, GripVertical, ChevronRight } from 'lucide-vue-next';
 
-const { logs } = useBlackboard();
+const { logs, isMinimized } = useBlackboard();
 const terminalContainer = ref<HTMLElement | null>(null);
 const el = ref<HTMLElement | null>(null);
 const handle = ref<HTMLElement | null>(null);
 
-const isMinimized = useStorage('blackboard-minimized', false);
 const pos = useStorage('blackboard-pos', { x: 24, y: 24 });
 const panelSize = useStorage('blackboard-size', { width: 400, height: 320 });
 
@@ -55,11 +54,13 @@ watch(logs, async function () {
 
 function getColor(source: string) {
     if (source === 'OBSERVER') return 'text-emerald-400';
-    if (source === 'INTENT_RADAR') return 'text-purple-400';
+    if (source === 'HOVER_EVENT') return 'text-purple-400';
+    if (source === 'USER_ACTION') return 'text-emerald-400';
+    if (source === 'SYSTEM_HINT') return 'text-blue-400';
     if (source === 'AGENT_ARI' || source === 'AGENT_NARRATOR') return 'text-amber-400';
     if (source === 'BLACKBOARD') return 'text-emerald-400';
     if (source === 'SYSTEM_ERROR') return 'text-red-400';
-    return 'text-slate-400';
+    return 'text-cyan-400';
 };
 </script>
 
@@ -74,7 +75,7 @@ function getColor(source: string) {
                 : { width: '200px', height: 'auto' }
         ]"
         :class="[
-            'fixed z-[150] overflow-hidden flex flex-col shadow-2xl transition-shadow duration-300',
+            'fixed z-150 overflow-hidden flex flex-col shadow-2xl transition-shadow duration-300',
             'bg-card/70 dark:bg-slate-950/75 backdrop-blur-2xl border border-border/50 rounded-lg',
             !isMinimized ? 'resize both min-w-[280px] min-h-[150px]' : 'pointer-events-auto resize-none'
         ]"
@@ -86,7 +87,7 @@ function getColor(source: string) {
         >
             <div class="flex items-center gap-2 overflow-hidden">
                 <GripVertical class="w-3 h-3 text-muted-foreground opacity-30 group-hover:opacity-100 transition-opacity" />
-                <span class="text-[9px] text-primary/80 font-mono tracking-widest uppercase font-bold truncate">[- Sistema Nervioso Central -]</span>
+                <span class="text-[9px] text-primary/80 font-mono tracking-widest uppercase font-bold truncate">[ Ari ]</span>
             </div>
             
             <div class="flex items-center gap-2">

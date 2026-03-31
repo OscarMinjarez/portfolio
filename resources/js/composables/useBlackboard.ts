@@ -1,15 +1,16 @@
 import { ref, reactive } from 'vue';
+import { useStorage } from '@vueuse/core';
 
 const currentFocus = ref<string | null>(null);
 const logs = ref<{ time: string; msg: string; source: string }[]>([]);
 const techInterests = reactive<Record<string, number>>({});
+const isMinimized = useStorage('blackboard-minimized', false);
 
 export function useBlackboard() {
 
     function setFocus(focus: string) {
         if (currentFocus.value !== focus) {
             currentFocus.value = focus;
-            addLog('OBSERVER', `Foco actualizado a: [${focus}]`);
         }
     }
 
@@ -29,6 +30,7 @@ export function useBlackboard() {
         currentFocus,
         logs,
         techInterests,
+        isMinimized,
         setFocus,
         addLog,
         addInterest,
